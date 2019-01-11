@@ -86,11 +86,13 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Timeout for sending messages.
+     * 发送超时时间
      */
     private int sendMsgTimeout = 3000;
 
     /**
      * Compress message body threshold, namely, message body larger than 4k will be compressed on default.
+     * 消息body需要压缩的阀值
      */
     private int compressMsgBodyOverHowmuch = 1024 * 4;
 
@@ -99,6 +101,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      * </p>
      *
      * This may potentially cause message duplication which is up to application developers to resolve.
+     * 同步发送失败重试次数
      */
     private int retryTimesWhenSendFailed = 2;
 
@@ -107,6 +110,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      * </p>
      *
      * This may potentially cause message duplication which is up to application developers to resolve.
+     * 异步发送失败重试次数
      */
     private int retryTimesWhenSendAsyncFailed = 2;
 
@@ -117,6 +121,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Maximum allowed message size in bytes.
+     * 1024 * 1024 * 4，4M
      */
     private int maxMessageSize = 1024 * 1024 * 4; // 4M
 

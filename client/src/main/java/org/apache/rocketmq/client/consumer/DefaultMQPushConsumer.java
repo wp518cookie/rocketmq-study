@@ -68,6 +68,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * </p>
      *
      * See <a href="http://rocketmq.apache.org/docs/core-concept/">here</a> for further discussion.
+     * 表示一类消费者
      */
     private String consumerGroup;
 
@@ -82,6 +83,8 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * </p>
      *
      * This field defaults to clustering.
+     * CLUSTERING //集群消费模式
+     * BROADCASTING //广播消费模式
      */
     private MessageModel messageModel = MessageModel.CLUSTERING;
 
@@ -115,6 +118,11 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * messages born prior to {@link #consumeTimestamp} will be ignored
      * </li>
      * </ul>
+     * 启动消费点策略
+     * CONSUME_FROM_LAST_OFFSET //队列尾消费
+     * CONSUME_FROM_FIRST_OFFSET //队列头消费
+     * CONSUME_FROM_TIMESTAMP //按照日期选择某个位置消费
+     * 注：此策略只生效于新在线测consumer group，如果是老的已存在的consumer group，都降按照已经持久化的consume offset进行消费
      */
     private ConsumeFromWhere consumeFromWhere = ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET;
 
@@ -123,52 +131,92 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * 20131223171201<br>
      * Implying Seventeen twelve and 01 seconds on December 23, 2013 year<br>
      * Default backtracking consumption time Half an hour ago.
+     * CONSUME_FROM_LAST_OFFSET的时候使用，从哪个时间点开始消费
+     *
+     * 默认值：半小时前
      */
     private String consumeTimestamp = UtilAll.timeMillisToHumanString3(System.currentTimeMillis() - (1000 * 60 * 30));
 
     /**
      * Queue allocation algorithm specifying how message queues are allocated to each consumer clients.
+     * allocateMessageQueueStrategy*
+     *
+     * 配置说明：负载均衡策略算法
+     *
+     * 默认值：AllocateMessageQueueAveragely（取模平均分配）
+     *
+     * 这个算法可以自行扩展以使用自定义的算法，目前内置的有以下算法可以使用
+     *
+     * AllocateMessageQueueAveragely //取模平均
+     * AllocateMessageQueueAveragelyByCircle //环形平均
+     * AllocateMessageQueueByConfig // 按照配置，传入听死的messageQueueList
+     * AllocateMessageQueueByMachineRoom //按机房，从源码上看，必须和阿里的某些broker命名一致才行
+     * AllocateMessageQueueConsistentHash //一致性哈希算法，本人于4.1提交的特性。用于解决“惊群效应”。
+     * 需要自行扩展的算法的，需要实现org.apache.rocketmq.client.consumer.rebalance.AllocateMessageQueueStrategy
      */
     private AllocateMessageQueueStrategy allocateMessageQueueStrategy;
 
     /**
      * Subscription relationship
+     * 配置说明：订阅关系（topic->sub expression）
+     * 默认值：{}
+     * 不建议设置，订阅topic建议直接调用subscribe接口
      */
     private Map<String /* topic */, String /* sub expression */> subscription = new HashMap<String, String>();
 
     /**
      * Message listener
+     * 配置说明：消息处理监听器（回调）
      */
     private MessageListener messageListener;
 
     /**
      * Offset Storage
+     * 配置说明：消息消费进度存储器
+     * 不建议设置，offsetStore 有两个策略：LocalFileOffsetStore 和 RemoteBrokerOffsetStore。
+     * 若没有显示设置的情况下，广播模式将使用LocalFileOffsetStore，集群模式将使用RemoteBrokerOffsetStore，不建议修改。
      */
     private OffsetStore offsetStore;
 
     /**
      * Minimum consumer thread number
+     * 配置说明：消费线程池的core size
+     * 默认值：20
      */
     private int consumeThreadMin = 20;
 
     /**
      * Max consumer thread number
+     * PushConsumer会内置一个消费线程池，这个配置控制此线程池的core size
+     * consumeThreadMax*
+     * 配置说明：消费线程池的max size
+     * 默认值：64
      */
     private int consumeThreadMax = 64;
 
     /**
      * Threshold for dynamic adjustment of the number of thread pool
+     * adjustThreadPoolNumsThreshold
+     * 配置说明：动态扩线程核数的消费堆积阈值
+     * 默认值：1000
+     * 相关功能以废弃，不建议设置
      */
     private long adjustThreadPoolNumsThreshold = 100000;
 
     /**
      * Concurrently max span offset.it has no effect on sequential consumption
+     * 配置说明：并发消费下，单条consume queue队列允许的最大offset跨度，达到则触发流控
+     * 默认值：2000
+     * 注：只对并发消费（ConsumeMessageConcurrentlyService）生效
      */
     private int consumeConcurrentlyMaxSpan = 2000;
 
     /**
      * Flow control threshold on queue level, each message queue will cache at most 1000 messages by default,
      * Consider the {@code pullBatchSize}, the instantaneous value may exceed the limit
+     * 配置说明：consume queue流控的阈值
+     * 默认值：1000
+     * 每条consume queue的消息拉取下来后会缓存到本地，消费结束会删除。当累积达到一个阈值后，会触发该consume queue的流控。
      */
     private int pullThresholdForQueue = 1000;
 
@@ -205,21 +253,32 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
 
     /**
      * Message pull Interval
+     * 配置说明：拉取的间隔
+     * 由于RocketMQ采取的pull的方式进行消息投递，每此会发起一个异步pull请求，
+     * 得到请求后会再发起下次请求，这个间隔默认是0，表示立刻再发起。在间隔为0的场景下，消息投递的及时性几乎等同用Push实现的机制。
      */
     private long pullInterval = 0;
 
     /**
      * Batch consumption size
+     * 配置说明：批量消费的最大消息条数
+     * 默认值：1
      */
     private int consumeMessageBatchMaxSize = 1;
 
     /**
      * Batch pull size
+     * 配置说明：一次最大拉取的批量大小
+     * 默认值：32
+     * 每次发起pull请求到broker，客户端需要指定一个最大batch size，表示这次拉取消息最多批量拉取多少条。
      */
     private int pullBatchSize = 32;
 
     /**
      * Whether update subscription relationship when every pull
+     * 配置说明：每次拉取的时候是否更新订阅关系
+     * 默认值：false
+     * 从源码上看，这个值若是true,且不是class fliter模式，则每次拉取的时候会把subExpression带上到pull的指令中，broker发现这个指令会根据这个上传的表达式重新build出注册数据，而不是直接使用读取的缓存数据。
      */
     private boolean postSubscriptionWhenPull = false;
 
@@ -234,16 +293,26 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      *
      * If messages are re-consumed more than {@link #maxReconsumeTimes} before success, it's be directed to a deletion
      * queue waiting.
+     * 配置说明：一个消息如果消费失败的话，最多重新消费多少次才投递到死信队列
+     * 默认值：-1
+     * 注：这个值默认值虽然是-1，但是实际使用的时候默认并不是-1。按照消费是并行还是串行消费有所不同的默认值。
+     * 并行：默认16次
+     * 串行：默认无限大（Interge.MAX_VALUE）。由于顺序消费的特性必须等待前面的消息成功消费才能消费后面的，默认无限大即一直不断消费直到消费完成。
      */
     private int maxReconsumeTimes = -1;
 
     /**
      * Suspending pulling time for cases requiring slow pulling like flow-control scenario.
+     * 配置说明：串行消费使用，如果返回ROLLBACK或者SUSPEND_CURRENT_QUEUE_A_MOMENT，再次消费的时间间隔
+     * 默认值：1000，单位毫秒
+     * 注：如果消费回调中对ConsumeOrderlyContext中的suspendCurrentQueueTimeMillis进行过设置，则使用用户设置的值作为消费间隔。
      */
     private long suspendCurrentQueueTimeMillis = 1000;
 
     /**
      * Maximum amount of time in minutes a message may block the consuming thread.
+     * 配置说明：消费的最长超时时间
+     * 默认值：15，单位分钟
      */
     private long consumeTimeout = 15;
 

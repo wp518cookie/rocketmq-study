@@ -32,7 +32,7 @@ public abstract class ConfigManager {
         try {
             fileName = this.configFilePath();
             String jsonString = MixAll.file2String(fileName);
-
+            log.info("----------fileName: " + fileName + " , " + this.getClass().getSimpleName() + " : " + jsonString);
             if (null == jsonString || jsonString.length() == 0) {
                 return this.loadBak();
             } else {

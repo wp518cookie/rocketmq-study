@@ -162,7 +162,7 @@ public class KVConfigManager {
         return null;
     }
 
-    public void printAllPeriodically() {
+    public void printAllPeriodically() { //周期性打印
         try {
             this.lock.readLock().lockInterruptibly();
             try {

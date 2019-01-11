@@ -88,6 +88,18 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+
+    /**
+     * broker向namesrv注册函数
+     * 主要功能步骤包括：
+     * 1、将当前请求注册的broker信息保存或者更新到clusterAddrTable、brokerAddrTable中
+     * 2、将当前请求注册的broker的topic信息，保存或者更新到topicQueueTable中
+     * -- 其中isBrokerTopicConfigChanged用来判断当前请求broker信息是否为最新版本，如果是则替换，不是则跳过
+     * -- createAndUpdateQueueData为具体觉得创建还是更新topicQueueTable
+     * -- 其中topicQueueTable中保存了对应topic的queueDate，queueDate保存了broker的name、write及read的queue数量，及topicSynFlag
+     * 3、如果当前broker为master节点，则直接按照上述步骤更新，如果为slave节点，则将haServerAddr、masterAddr等信息设置到result返回值中
+     * @return 如果是slave，则返回master的ha地址
+     */
     public RegisterBrokerResult registerBroker(
             final String clusterName,
             final String brokerAddr,

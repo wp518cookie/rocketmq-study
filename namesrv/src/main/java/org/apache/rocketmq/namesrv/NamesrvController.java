@@ -38,9 +38,16 @@ public class NamesrvController {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("NSScheduledThread"));
 
     private final KVConfigManager kvConfigManager;
+    /**
+     * 路由信息、topic信息管理
+     */
     private final RouteInfoManager routeInfoManager;
 
     private RemotingServer remotingServer;
+
+    /**
+     * broker管理服务
+     */
     private BrokerHousekeepingService brokerHousekeepingService;
     private ExecutorService remotingExecutor;
     private Configuration configuration;
@@ -60,13 +67,27 @@ public class NamesrvController {
         this.configuration.setStorePathFromConfig(this.namesrvConfig, "configStorePath");
     }
 
+    /**
+     * 1、初始化netty相关配置
+     * 2、定义broker与namesrv通过netty进行通信的通信协议（请求中带上code，代表对应调用哪个方法函数）
+     * 3、定时每10s扫描broker信息，如果过期则删除
+     * 4、定时每10s将configTable的信息记录到日志文件中
+     * @return
+     */
     public boolean initialize() {
         // Users/wp/namesrv/kvConfig.json
         // todo 配置的内容有啥用？
         this.kvConfigManager.load();
+        // 初始化netty的一些属性，如boss worker listener等
         this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.brokerHousekeepingService);
         this.remotingExecutor =
                 Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
+        // 此注册函数主要作用就是，定义RequestCode，用来作为netty的通信协议字段
+        // 即：如果broker通过netty发送通信请求，其中请求信息中带有code == RequestCode.REGISTER_BROKER，
+        //那么在namesrv的netty端接收到该通信连接时候，
+        // 则对应调用namesrv的DefaultRequestProcessor类下面的registerBroker方法，从而完成broker向namesrv注册
+        // 具体请参考com.alibaba.rocketmq.namesrv.processor.DefaultRequestProcessor类
+        // 更多关于netty在gmq中的通信机制及原理，请关注后续博文(博客地址为：http://my.oschina.net/tantexian)
         this.registerProcessor();
         this.scheduledExecutorService.scheduleAtFixedRate(
                 () -> NamesrvController.this.routeInfoManager.scanNotActiveBroker(), 1, 10, TimeUnit.SECONDS);

@@ -32,7 +32,8 @@ public class NameServerInstanceTest {
         nettyServerConfig.setListenPort(9876);
         NamesrvController namesrvController = new NamesrvController(namesrvConfig, nettyServerConfig);
         namesrvController.initialize();
+        // 绑定9876端口，并绑定一堆handler
         namesrvController.start();
-        TimeUnit.MILLISECONDS.sleep(DateUtils.MILLIS_PER_DAY);
+        System.in.read();
     }
 }

@@ -159,10 +159,10 @@ public class BrokerController {
     private AbstractTransactionalMessageCheckListener transactionalMessageCheckListener;
 
     public BrokerController(
-        final BrokerConfig brokerConfig,
-        final NettyServerConfig nettyServerConfig,
+        final BrokerConfig brokerConfig,         //broker配置：包括根目录 ， namesrv地址，broker的IP和名称，消息队列数，收发消息线程池数等参数
+        final NettyServerConfig nettyServerConfig,      //netty启动配置: 包括监听端口, 工作线程数, 异步发送消息信号量数量等参数。
         final NettyClientConfig nettyClientConfig,
-        final MessageStoreConfig messageStoreConfig
+        final MessageStoreConfig messageStoreConfig     //存储层配置：包括存储根目录，CommitLog 配置，持久化策略配置等参数
     ) {
         this.brokerConfig = brokerConfig;
         this.nettyServerConfig = nettyServerConfig;
@@ -221,7 +221,13 @@ public class BrokerController {
     }
 
     public boolean initialize() throws CloneNotSupportedException {
-        boolean result = this.topicConfigManager.load();
+        /**
+         * topicManager : 用于管理broker中存储的所有topic的配置
+         * consumerOffsetManager: 管理Consumer的消费进度
+         * subscriptionGroupManager: 用来管理订阅组，包括订阅权限等
+         * messageStore: 用于broker层的消息落地存储
+         */
+        boolean result = this.topicConfigManager.load();    //加载topics.json，consumeroffset.json，subscriptionGroup.json没有则加载备份
 
         result = result && this.consumerOffsetManager.load();
         result = result && this.subscriptionGroupManager.load();
@@ -319,7 +325,7 @@ public class BrokerController {
                         log.error("schedule record error.", e);
                     }
                 }
-            }, initialDelay, period, TimeUnit.MILLISECONDS);
+            }, initialDelay, period, TimeUnit.MILLISECONDS);    //第二天早上，间隔为1天，统计前一天的消息数量啥的
 
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
@@ -330,7 +336,7 @@ public class BrokerController {
                         log.error("schedule persist consumerOffset error.", e);
                     }
                 }
-            }, 1000 * 10, this.brokerConfig.getFlushConsumerOffsetInterval(), TimeUnit.MILLISECONDS);
+            }, 1000 * 10, this.brokerConfig.getFlushConsumerOffsetInterval(), TimeUnit.MILLISECONDS);   //10秒延迟，5秒间隔持久化，json.toJsonString()写文件
 
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
@@ -341,7 +347,7 @@ public class BrokerController {
                         log.error("schedule persist consumer filter error.", e);
                     }
                 }
-            }, 1000 * 10, 1000 * 10, TimeUnit.MILLISECONDS);
+            }, 1000 * 10, 1000 * 10, TimeUnit.MILLISECONDS);    //10秒延迟，10秒间隔，消费者过滤配置持久化
 
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
@@ -352,7 +358,7 @@ public class BrokerController {
                         log.error("protectBroker error.", e);
                     }
                 }
-            }, 3, 3, TimeUnit.MINUTES);
+            }, 3, 3, TimeUnit.MINUTES);         //3分钟延迟，3分钟间隔，todo 保护broker，踢掉消费太慢的消费者？
 
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
@@ -363,7 +369,7 @@ public class BrokerController {
                         log.error("printWaterMark error.", e);
                     }
                 }
-            }, 10, 1, TimeUnit.SECONDS);
+            }, 10, 1, TimeUnit.SECONDS);    //10秒延迟，1秒间隔，打印水位
 
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
@@ -375,9 +381,9 @@ public class BrokerController {
                         log.error("schedule dispatchBehindBytes error.", e);
                     }
                 }
-            }, 1000 * 10, 1000 * 60, TimeUnit.MILLISECONDS);
+            }, 1000 * 10, 1000 * 60, TimeUnit.MILLISECONDS);    //todo 10秒延迟，60秒间隔
 
-            if (this.brokerConfig.getNamesrvAddr() != null) {
+            if (this.brokerConfig.getNamesrvAddr() != null) {   //todo  拿配置文件，拿不到的话会启动一个10秒延迟，2分钟间隔的任务通过httptinyclient拉取namesrvAddr
                 this.brokerOuterAPI.updateNameServerAddressList(this.brokerConfig.getNamesrvAddr());
                 log.info("Set user specified name server address: {}", this.brokerConfig.getNamesrvAddr());
             } else if (this.brokerConfig.isFetchNamesrvAddrByAddressServer()) {
@@ -412,7 +418,7 @@ public class BrokerController {
                             log.error("ScheduledTask syncAll slave exception", e);
                         }
                     }
-                }, 1000 * 10, 1000 * 60, TimeUnit.MILLISECONDS);
+                }, 1000 * 10, 1000 * 60, TimeUnit.MILLISECONDS);    //todo 同步slave配置？
             } else {
                 this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
@@ -424,9 +430,9 @@ public class BrokerController {
                             log.error("schedule printMasterAndSlaveDiff error.", e);
                         }
                     }
-                }, 1000 * 10, 1000 * 60, TimeUnit.MILLISECONDS);
+                }, 1000 * 10, 1000 * 60, TimeUnit.MILLISECONDS);    //打印主从的区别
             }
-
+            // todo skip
             if (TlsSystemConfig.tlsMode != TlsMode.DISABLED) {
                 // Register a listener to reload SslContext
                 try {
