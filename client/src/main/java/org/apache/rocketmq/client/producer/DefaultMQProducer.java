@@ -81,14 +81,16 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Number of queues to create per default topic.
+     * 默认4个messageQueue
      */
     private volatile int defaultTopicQueueNums = 4;
 
     /**
      * Timeout for sending messages.
      * 发送超时时间
+     * todo 临时改下，方便调试
      */
-    private int sendMsgTimeout = 3000;
+    private int sendMsgTimeout = 1000000;
 
     /**
      * Compress message body threshold, namely, message body larger than 4k will be compressed on default.

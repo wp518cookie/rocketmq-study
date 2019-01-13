@@ -500,10 +500,11 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         this.makeSureStateOK();     //校验Producer处于运行状态
         Validators.checkMessage(msg, this.defaultMQProducer);      //校验消息格式
 
-        final long invokeID = random.nextLong();        //调用变好，用于下面打印日志，标记为同一次发送消息
+        final long invokeID = random.nextLong();        //调用编号，用于下面打印日志，标记为同一次发送消息
         long beginTimestampFirst = System.currentTimeMillis();
         long beginTimestampPrev = beginTimestampFirst;
         long endTimestamp = beginTimestampFirst;
+        //查看缓存里是否有，没有就从nameserver中查找
         TopicPublishInfo topicPublishInfo = this.tryToFindTopicPublishInfo(msg.getTopic());
         if (topicPublishInfo != null && topicPublishInfo.ok()) {
             boolean callTimeout = false;
@@ -516,7 +517,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             //循环调用发送消息，直到成功
             for (; times < timesTotal; times++) {
                 String lastBrokerName = null == mq ? null : mq.getBrokerName();
-                MessageQueue mqSelected = this.selectOneMessageQueue(topicPublishInfo, lastBrokerName);
+                MessageQueue mqSelected = this.selectOneMessageQueue(topicPublishInfo, lastBrokerName); //index%size，简单的轮询
                 if (mqSelected != null) {
                     mq = mqSelected;
                     brokersSent[times] = mq.getBrokerName();
@@ -662,7 +663,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                                       final TopicPublishInfo topicPublishInfo,
                                       final long timeout) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
         long beginStartTime = System.currentTimeMillis();
-        // 获取 broker地址
+        // 获取 broker地址，根据brokerName获得他的Addr
         String brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
         log.info("-----------根据brokerName:" + mq.getBrokerName() + ", 获取到的brokerAddr： " + brokerAddr);
         if (null == brokerAddr) {
@@ -676,7 +677,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
 
         SendMessageContext context = null;
         if (brokerAddr != null) {
-            //是否使用broker vip通道，会启用两个端口对外服务
+            //todo 有啥作用？是否使用broker vip通道，会启用两个端口对外服务
             brokerAddr = MixAll.brokerVIPChannel(this.defaultMQProducer.isSendMessageWithVIPChannel(), brokerAddr);
 
             byte[] prevBody = msg.getBody();
@@ -793,7 +794,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                         if (timeout < costTimeSync) {
                             throw new RemotingTooMuchRequestException("sendKernelImpl call timeout");
                         }
-                        sendResult = this.mQClientFactory.getMQClientAPIImpl().sendMessage(
+                        sendResult = this.mQClientFactory.getMQClientAPIImpl().sendMessage( //发消息
                             brokerAddr,
                             mq.getBrokerName(),
                             msg,
