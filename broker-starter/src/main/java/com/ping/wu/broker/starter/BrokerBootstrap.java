@@ -12,8 +12,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 @SpringBootApplication
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
-public class Bootstrap {
+public class BrokerBootstrap {
     public static void main(String[] args) {
-        SpringApplication.run(Bootstrap.class);
+        SpringApplication.run(BrokerBootstrap.class);
     }
 }

@@ -153,7 +153,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 this.serviceState = ServiceState.START_FAILED;
 
                 this.checkConfig();
-
+//                启动一个groupName为CLIENT_INNER_PRODUCER的DefaultMQProducer，用于将消费失败的消息发回broker,消息的topic格式为%RETRY%ConsumerGroupName。
                 if (!this.defaultMQProducer.getProducerGroup().equals(MixAll.CLIENT_INNER_PRODUCER_GROUP)) {
                     this.defaultMQProducer.changeInstanceNameToPID();
                 }

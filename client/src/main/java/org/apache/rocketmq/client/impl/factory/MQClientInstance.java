@@ -83,6 +83,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * 作为与MQ交互的实例，一般来说一个JVM只有一个，包含了topic路由信息，broker地址信息等，同事负责启动通信服务和定时任务等
+ */
 public class MQClientInstance {
     private final static long LOCK_TIMEOUT_MILLIS = 3000;
     private final InternalLogger log = ClientLogger.getLog();
@@ -234,11 +237,20 @@ public class MQClientInstance {
                     // Start request-response channel
                     this.mQClientAPIImpl.start();
                     // Start various schedule tasks
+                    /**
+                     * a 每两分钟执行一次寻址服务(NameServer地址)
+                     * b 每30秒更新一次所有的topic的路由信息(topicRouteTable)，参见updateTopicRouteInfoFromNameServer
+                     * c 每30秒移除离线的broker，主要是参照topicRouteTable更新brokerAddrTable
+                     * d 每30秒发送一次心跳给所有的master broker
+                     * e 更新offset每5秒提交一次消费的offset，broker端为ConsumerOffsetManager负责记录，此offset是逻辑偏移量，比如说，consumerA@consumerAGroup 在broker_a的queue 0的消费队列共有10000条消息，目前消费到888，那么offset就是888.
+                     * 说到这里，为啥冒出个消费相关的东东，因为producer和consumer内部都持有MQClientInstance实例，故MQClientInstance既有生产者逻辑，又有消费者逻辑。
+                     * h 每1分钟调整一次线程池，这也是针对消费者来说的，具体为如果消息堆积超过10W条，则调大线程池，最多64个线程；如果消息堆积少于8W条，则调小线程池，最少20的线程。
+                     */
                     this.startScheduledTask();
                     // Start pull service
                     this.pullMessageService.start();
                     // Start rebalance service
-                    this.rebalanceService.start();
+                    this.rebalanceService.start();        //由于刚启动processQueueTable 里头没有，所以会生成pullRequest去拉取message    brokerName+queueId+topicName : 组成一个key
                     // Start push service
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
                     log.info("the client factory [{}] start OK", this.clientId);

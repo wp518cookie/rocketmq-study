@@ -32,7 +32,9 @@ public class MessageStoreConfig {
         + File.separator + "commitlog";
 
     // CommitLog file size,default is 1G
-    private int mapedFileSizeCommitLog = 1024 * 1024 * 1024;
+    // todo 方便调试。。弄小点～
+//    private int mapedFileSizeCommitLog = 1024 * 1024 * 1024;
+    private int mapedFileSizeCommitLog = 512;
     // ConsumeQueue file size,default is 30W
     private int mapedFileSizeConsumeQueue = 300000 * ConsumeQueue.CQ_STORE_UNIT_SIZE;
     // enable consume queue ext
@@ -56,6 +58,7 @@ public class MessageStoreConfig {
     /**
      * introduced since 4.0.x. Determine whether to use mutex reentrantLock when putting message.<br/>
      * By default it is set to false indicating using spin lock when putting message.
+     * todo 默认用的是自旋锁，why？相比reentrantlock有啥优势。。觉得就算拿不到锁也只需要等待一会，没必要线程挂起？
      */
     private boolean useReentrantLockWhenPutMessage = false;
 

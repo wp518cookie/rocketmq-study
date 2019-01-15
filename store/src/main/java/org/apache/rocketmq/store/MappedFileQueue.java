@@ -52,7 +52,7 @@ public class MappedFileQueue {
     public MappedFileQueue(final String storePath, int mappedFileSize,
         AllocateMappedFileService allocateMappedFileService) {
         this.storePath = storePath;
-        this.mappedFileSize = mappedFileSize;
+        this.mappedFileSize = mappedFileSize;   //默认1G
         this.allocateMappedFileService = allocateMappedFileService;
     }
 

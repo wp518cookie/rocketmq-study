@@ -166,7 +166,13 @@ public abstract class NettyRemotingAbstract {
      * @param cmd request command.
      */
     public void processRequestCommand(final ChannelHandlerContext ctx, final RemotingCommand cmd) {
-        final Pair<NettyRequestProcessor, ExecutorService> matched = this.processorTable.get(cmd.getCode());
+        if (cmd.getCode() == 10) {
+            log.info("---------received msg{} from {}", cmd, ctx.channel().remoteAddress());
+        }
+        if (cmd.getCode() == 11) {
+            log.info("---------received msg{} from {}", cmd, ctx.channel().remoteAddress());
+        }
+        final Pair<NettyRequestProcessor, ExecutorService> matched = this.processorTable.get(cmd.getCode()); //310:<SendMessageProcessor, BrokerFixedThreadPoolExecutor>
         final Pair<NettyRequestProcessor, ExecutorService> pair = null == matched ? this.defaultRequestProcessor : matched;
         final int opaque = cmd.getOpaque();
 
@@ -363,7 +369,11 @@ public abstract class NettyRemotingAbstract {
                                           final long timeoutMillis)
         throws InterruptedException, RemotingSendRequestException, RemotingTimeoutException {
         final int opaque = request.getOpaque();
-
+        if (request.getCode() != 105) {
+            //310:SEND_MESSAGE_V2
+            //RemotingCommand [code=105, language=JAVA, version=277, opaque=0, flag(B)=0, remark=null, extFields=null, serializeTypeCurrentRPC=JSON]
+            log.info("-----------NettyRemotingAbstract.java 发送的request内容为：" + request);
+        }
         try {
             final ResponseFuture responseFuture = new ResponseFuture(channel, opaque, timeoutMillis, null, null);
             this.responseTable.put(opaque, responseFuture);
@@ -413,7 +423,7 @@ public abstract class NettyRemotingAbstract {
             if (timeoutMillis < costTime) {
                 throw new RemotingTooMuchRequestException("invokeAsyncImpl call timeout");
             }
-
+            //pushComsumer：RemotingCommand [code=11, language=JAVA, version=277, opaque=137, flag(B)=0, remark=null, extFields=null, serializeTypeCurrentRPC=JSON] ，11：pull message
             final ResponseFuture responseFuture = new ResponseFuture(channel, opaque, timeoutMillis - costTime, invokeCallback, once);
             this.responseTable.put(opaque, responseFuture);
             try {

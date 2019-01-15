@@ -90,7 +90,9 @@ public class NamesrvController {
         // 更多关于netty在gmq中的通信机制及原理，请关注后续博文(博客地址为：http://my.oschina.net/tantexian)
         this.registerProcessor();
         this.scheduledExecutorService.scheduleAtFixedRate(
-                () -> NamesrvController.this.routeInfoManager.scanNotActiveBroker(), 1, 10, TimeUnit.SECONDS);
+                //todo 10秒一次检查无效的broker，没有自动上报的broker
+//                () -> NamesrvController.this.routeInfoManager.scanNotActiveBroker(), 1, 10, TimeUnit.SECONDS);
+                () -> NamesrvController.this.routeInfoManager.scanNotActiveBroker(), 1, 1000, TimeUnit.SECONDS);
         this.scheduledExecutorService.scheduleAtFixedRate(
                 () -> NamesrvController.this.kvConfigManager.printAllPeriodically(), 1, 10, TimeUnit.MINUTES);
         /**

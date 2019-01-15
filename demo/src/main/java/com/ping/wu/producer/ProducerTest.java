@@ -37,7 +37,7 @@ public class ProducerTest {
         producer.setNamesrvAddr("127.0.0.1:9876");
         producer.start();
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
             try {
 
                 /*
@@ -45,7 +45,7 @@ public class ProducerTest {
                  */
                 Message msg = new Message("TopicTest" /* Topic */,
                         "TagA" /* Tag */,
-                        ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET) /* Message body */
+                        ("hello").getBytes(RemotingHelper.DEFAULT_CHARSET) /* Message body */
                 );
 
                 /*

@@ -52,7 +52,6 @@ public class PullRequestHoldService extends ServiceThread {
                 mpr = prev;
             }
         }
-
         mpr.addPullRequest(pullRequest);
     }
 
@@ -70,7 +69,8 @@ public class PullRequestHoldService extends ServiceThread {
         while (!this.isStopped()) {
             try {
                 if (this.brokerController.getBrokerConfig().isLongPollingEnable()) {
-                    this.waitForRunning(5 * 1000);
+//                    this.waitForRunning(5 * 1000);    todo 更改wait长度，看下consumer触发机制
+                    this.waitForRunning(500 * 1000);
                 } else {
                     this.waitForRunning(this.brokerController.getBrokerConfig().getShortPollingTimeMills());
                 }

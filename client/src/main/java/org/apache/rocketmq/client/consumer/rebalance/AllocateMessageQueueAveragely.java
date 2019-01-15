@@ -62,6 +62,7 @@ public class AllocateMessageQueueAveragely implements AllocateMessageQueueStrate
         for (int i = 0; i < range; i++) {
             result.add(mqAll.get((startIndex + i) % mqAll.size()));
         }
+//        System.out.println("--------AllocateMessageQueueAveragely.allocate, result: " + result + ", cid : " + currentCID);
         return result;
     }
 

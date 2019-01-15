@@ -1,5 +1,6 @@
 package com.ping.wu.consumer;
 
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -17,7 +18,7 @@ import java.util.List;
 
 public class ConsumerTest {
     public static void main(String[] args) throws InterruptedException, MQClientException {
-
+        PropertyConfigurator.configure("/Users/wp/Documents/code/self/study/rocketmq-study/broker-starter/src/main/resources/log4j.properties");
         /*
          * Instantiate with specified consumer group name.
          */

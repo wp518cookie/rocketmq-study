@@ -358,6 +358,13 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             }
             putMessageResult = this.brokerController.getTransactionalMessageService().prepareMessage(msgInner);
         } else {
+            /**
+             * MessageExt [queueId=3, storeSize=0, queueOffset=0, sysFlag=0, bornTimestamp=1547444444248,
+             * bornHost=/192.168.21.105:52325, storeTimestamp=0, storeHost=/192.168.21.105:10900, msgId=null,
+             * commitLogOffset=0, bodyCRC=0, reconsumeTimes=0, preparedTransactionOffset=0,
+             * toString()=Message{topic='TopicTest', flag=0, properties={UNIQ_KEY=C0A81569410418B4AAC245E214580001, WAIT=true, TAGS=TagA},
+             * body=[72, 101, 108, 108, 111, 32, 82, 111, 99, 107, 101, 116, 77, 81, 32, 49], transactionId='null'}]
+             */
             putMessageResult = this.brokerController.getMessageStore().putMessage(msgInner);
         }
 

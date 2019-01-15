@@ -270,7 +270,7 @@ public abstract class RebalanceImpl {
                 if (null == cidAll) {
                     log.warn("doRebalance, {} {}, get consumer id list failed", consumerGroup, topic);
                 }
-
+//                System.out.println(("--------rebalanceImpl.rebalanceByTopic, mqSet: " + mqSet + ", cidAll: " + cidAll));
                 if (mqSet != null && cidAll != null) {
                     List<MessageQueue> mqAll = new ArrayList<MessageQueue>();
                     mqAll.addAll(mqSet);
@@ -282,7 +282,7 @@ public abstract class RebalanceImpl {
 
                     List<MessageQueue> allocateResult = null;
                     try {
-                        allocateResult = strategy.allocate(
+                        allocateResult = strategy.allocate(     //AllocateMessageQueueAveragely 默认
                             this.consumerGroup,
                             this.mQClientFactory.getClientId(),
                             mqAll,

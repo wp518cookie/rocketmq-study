@@ -252,6 +252,7 @@ public class BrokerController {
         result = result && this.messageStore.load();
 
         if (result) {
+            //todo 会启动两个端口，一个普通端口，一个vip通道
             this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.clientHousekeepingService);
             NettyServerConfig fastConfig = (NettyServerConfig) this.nettyServerConfig.clone();
             fastConfig.setListenPort(nettyServerConfig.getListenPort() - 2);
@@ -369,7 +370,7 @@ public class BrokerController {
                         log.error("printWaterMark error.", e);
                     }
                 }
-            }, 10, 1, TimeUnit.SECONDS);    //10秒延迟，1秒间隔，打印水位
+            }, 10, 1000, TimeUnit.SECONDS);    //10秒延迟，1秒间隔，打印水位
 
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
@@ -828,7 +829,9 @@ public class BrokerController {
                     log.error("registerBrokerAll Exception", e);
                 }
             }
-        }, 1000 * 10, Math.max(10000, Math.min(brokerConfig.getRegisterNameServerPeriod(), 60000)), TimeUnit.MILLISECONDS);
+            //todo 改长一点，方便断点查看
+//        }, 1000 * 10, Math.max(10000, Math.min(brokerConfig.getRegisterNameServerPeriod(), 60000)), TimeUnit.MILLISECONDS);
+        }, 1000 * 10, 1200, TimeUnit.SECONDS);
 
         if (this.brokerStatsManager != null) {
             this.brokerStatsManager.start();
