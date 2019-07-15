@@ -57,6 +57,9 @@ public class NamesrvController {
         this.namesrvConfig = namesrvConfig;
         this.nettyServerConfig = nettyServerConfig;
         this.kvConfigManager = new KVConfigManager(this);
+        /**
+         * 集群状态存储结构
+         */
         this.routeInfoManager = new RouteInfoManager();
         this.brokerHousekeepingService = new BrokerHousekeepingService(this);
         // todo 这玩意干嘛的？
@@ -81,18 +84,18 @@ public class NamesrvController {
         // 初始化netty的一些属性，如boss worker listener等
         this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.brokerHousekeepingService);
         this.remotingExecutor =
-                Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
+                Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_")); //8个线程的线程池
         // 此注册函数主要作用就是，定义RequestCode，用来作为netty的通信协议字段
         // 即：如果broker通过netty发送通信请求，其中请求信息中带有code == RequestCode.REGISTER_BROKER，
         //那么在namesrv的netty端接收到该通信连接时候，
         // 则对应调用namesrv的DefaultRequestProcessor类下面的registerBroker方法，从而完成broker向namesrv注册
         // 具体请参考com.alibaba.rocketmq.namesrv.processor.DefaultRequestProcessor类
-        // 更多关于netty在gmq中的通信机制及原理，请关注后续博文(博客地址为：http://my.oschina.net/tantexian)
-        this.registerProcessor();
+        // 更多关于netty在mq中的通信机制及原理，请关注后续博文(博客地址为：http://my.oschina.net/tantexian)
+        this.registerProcessor();       //注册默认的RequestProcessor
         this.scheduledExecutorService.scheduleAtFixedRate(
                 //todo 10秒一次检查无效的broker，没有自动上报的broker
-//                () -> NamesrvController.this.routeInfoManager.scanNotActiveBroker(), 1, 10, TimeUnit.SECONDS);
-                () -> NamesrvController.this.routeInfoManager.scanNotActiveBroker(), 1, 1000, TimeUnit.SECONDS);
+//                () -> NamesrvController.this.routeInfoManager.scanNotActiveBroker(), 5, 10, TimeUnit.SECONDS);
+                () -> NamesrvController.this.routeInfoManager.scanNotActiveBroker(), 1, 10000, TimeUnit.SECONDS);
         this.scheduledExecutorService.scheduleAtFixedRate(
                 () -> NamesrvController.this.kvConfigManager.printAllPeriodically(), 1, 10, TimeUnit.MINUTES);
         /**

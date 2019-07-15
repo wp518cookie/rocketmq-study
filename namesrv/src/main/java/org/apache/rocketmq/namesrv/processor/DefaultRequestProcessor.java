@@ -340,7 +340,10 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
         final GetRouteInfoRequestHeader requestHeader =
             (GetRouteInfoRequestHeader) request.decodeCommandCustomHeader(GetRouteInfoRequestHeader.class);
-
+        log.info("------------------DefaultRequestProcessor.getRouteInfoByTopic: " + requestHeader.getTopic());
+        if (requestHeader.getTopic().equals("TopicTest")) {
+            log.info("------------");
+        }
         TopicRouteData topicRouteData = this.namesrvController.getRouteInfoManager().pickupTopicRouteData(requestHeader.getTopic());
 
         if (topicRouteData != null) {

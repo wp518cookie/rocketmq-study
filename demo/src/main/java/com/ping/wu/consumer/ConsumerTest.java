@@ -54,6 +54,9 @@ public class ConsumerTest {
             @Override
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs,
                                                             ConsumeConcurrentlyContext context) {
+                System.out.println(msgs.size());
+                MessageExt messageExt = msgs.get(0);
+                System.out.println(messageExt);
                 System.out.printf("%s Receive New Messages: %s %n", Thread.currentThread().getName(), msgs);
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             }

@@ -37,7 +37,7 @@ public class ProducerTest {
         producer.setNamesrvAddr("127.0.0.1:9876");
         producer.start();
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             try {
 
                 /*
@@ -47,6 +47,7 @@ public class ProducerTest {
                         "TagA" /* Tag */,
                         ("hello").getBytes(RemotingHelper.DEFAULT_CHARSET) /* Message body */
                 );
+                msg.setKeys("hello");
 
                 /*
                  * Call send message to deliver message to one of brokers.

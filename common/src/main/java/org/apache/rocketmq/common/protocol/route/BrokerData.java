@@ -13,8 +13,17 @@ import java.util.Random;
  */
 
 public class BrokerData implements Comparable<BrokerData> {
+    /**
+     * 集群名
+     */
     private String cluster;
+    /**
+     * broker名
+     */
     private String brokerName;
+    /**
+     * broker角色编号+地址
+     */
     private HashMap<Long/* brokerId */, String/* broker address */> brokerAddrs;
     private final Random random = new Random();
 

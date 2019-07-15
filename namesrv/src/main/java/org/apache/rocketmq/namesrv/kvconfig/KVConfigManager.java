@@ -46,7 +46,7 @@ public class KVConfigManager {
                     KVConfigSerializeWrapper.fromJson(content, KVConfigSerializeWrapper.class);
             if (null != kvConfigSerializeWrapper) {
                 this.configTable.putAll(kvConfigSerializeWrapper.getConfigTable());
-                log.info("load KV config table OK");
+                log.info("load KV config table OK, configTable : " + configTable);
             }
         }
     }

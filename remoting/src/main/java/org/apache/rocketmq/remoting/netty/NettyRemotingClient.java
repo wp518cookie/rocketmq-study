@@ -185,7 +185,9 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                         defaultEventExecutorGroup,
                         new NettyEncoder(),
                         new NettyDecoder(),
-                        new IdleStateHandler(0, 0, nettyClientConfig.getClientChannelMaxIdleTimeSeconds()),
+                        //todo netty的心跳检测？
+//                        new IdleStateHandler(0, 0, nettyClientConfig.getClientChannelMaxIdleTimeSeconds()), 默认2分钟
+                        new IdleStateHandler(0, 0, 12000),
                         new NettyConnectManageHandler(),
                         new NettyClientHandler());
                 }

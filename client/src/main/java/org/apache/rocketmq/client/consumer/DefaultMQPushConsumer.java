@@ -97,7 +97,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * <li>
      * <code>CONSUME_FROM_LAST_OFFSET</code>: consumer clients pick up where it stopped previously.
      * If it were a newly booting up consumer client, according aging of the consumer group, there are two
-     * cases:
+     * cases:·
      * <ol>
      * <li>
      * if the consumer group is created so recently that the earliest message being subscribed has yet
@@ -271,6 +271,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * 配置说明：一次最大拉取的批量大小
      * 默认值：32
      * 每次发起pull请求到broker，客户端需要指定一个最大batch size，表示这次拉取消息最多批量拉取多少条。
+     * todo 改参数作用
      */
     private int pullBatchSize = 32;
 

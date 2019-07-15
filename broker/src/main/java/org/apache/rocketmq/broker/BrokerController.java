@@ -370,7 +370,7 @@ public class BrokerController {
                         log.error("printWaterMark error.", e);
                     }
                 }
-            }, 10, 1000, TimeUnit.SECONDS);    //10秒延迟，1秒间隔，打印水位
+            }, 10, 1000, TimeUnit.SECONDS);    //10秒延迟，1000秒间隔，打印水位
 
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
